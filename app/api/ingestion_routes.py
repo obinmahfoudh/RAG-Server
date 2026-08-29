@@ -1,6 +1,6 @@
 import os, shutil, uuid
 from fastapi import APIRouter, UploadFile, File, BackgroundTasks, HTTPException
-from app.services.injestion import IngestionService
+from app.services.ingestion import IngestionService
 
 router = APIRouter()
 ingestion_service = IngestionService()
