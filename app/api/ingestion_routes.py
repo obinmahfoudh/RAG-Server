@@ -1,6 +1,9 @@
 import os, shutil, uuid
 from fastapi import APIRouter, UploadFile, File, BackgroundTasks, HTTPException
 from app.services.ingestion import IngestionService
+from pydantic import BaseModel
+from typing import Any
+
 
 router = APIRouter()
 ingestion_service = IngestionService()
@@ -22,11 +25,17 @@ def process_in_background(job_id: str, temp_path: str, filename: str):
         if os.path.exists(temp_path):
             os.remove(temp_path)
 
-@router.post("/api/ingest", status_code=202)
+# Sets response format for ingestion route
+class IngestionInitResponse(BaseModel):
+    job_id: str
+    status: str = "queued"
+    message: str = "Processing in background"
+
+@router.post("/api/ingest", status_code=202, response_model= IngestionInitResponse)
 async def ingest_document(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     """Takes a file and processes it for ingestion"""
     # Check if file was provided and that its a pdf
-    if not file.filename or file.filename.lower().endswith(".pdf"):
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(400, "Only PDFs allowed.")
     # Generate uuid for job id
     job_id = str(uuid.uuid4())
@@ -38,7 +47,16 @@ async def ingest_document(background_tasks: BackgroundTasks, file: UploadFile = 
     JOBS[job_id] = {"filename": file.filename, "status": "queued"}
     background_tasks.add_task(process_in_background, job_id, temp_path, file.filename)
 
-    return {"job_id": job_id, "status": "queued", "message": "Processing in background."}
+    # Rest will be filled in from response format above
+    return {"job_id": job_id}
+
+
+# Sets response format for job status route
+class JobStatusResponse(BaseModel):
+    filename: str | None = None
+    status: str
+    result: dict[str, Any] | None = None
+    error: str | None = None
 
 @router.get("/api/ingest/{job_id}")
 async def get_status(job_id: str):
