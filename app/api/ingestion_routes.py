@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from typing import Any
 
 
-router = APIRouter()
+router = APIRouter(tags=["Ingestion"])
 ingestion_service = IngestionService()
 UPLOAD_DIR = "./data/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -31,7 +31,7 @@ class IngestionInitResponse(BaseModel):
     status: str = "queued"
     message: str = "Processing in background"
 
-@router.post("/api/ingest", status_code=202, response_model= IngestionInitResponse)
+@router.post("/ingest", status_code=202, response_model= IngestionInitResponse)
 async def ingest_document(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     """Takes a file and processes it for ingestion"""
     # Check if file was provided and that its a pdf
@@ -58,7 +58,7 @@ class JobStatusResponse(BaseModel):
     result: dict[str, Any] | None = None
     error: str | None = None
 
-@router.get("/api/ingest/{job_id}")
+@router.get("/ingest/{job_id}", response_model= JobStatusResponse)
 async def get_status(job_id: str):
     if job_id not in JOBS:
         raise HTTPException(404, "Job not found")
