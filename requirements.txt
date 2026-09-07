@@ -12,3 +12,4 @@ pypdf
 rank-bm25
 uvicorn
 reportlab
+python-multipart
