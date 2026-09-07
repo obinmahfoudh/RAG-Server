@@ -1,0 +1,14 @@
+chromadb
+fastapi
+huggingface_hub
+langchain-chroma
+langchain-community
+langchain-core
+langchain-huggingface
+langchain-ollama
+langchain-text-splitters
+ollama
+pypdf
+rank-bm25
+uvicorn
+reportlab
