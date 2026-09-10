@@ -1,7 +1,7 @@
 chromadb
 fastapi
 huggingface_hub
-sentence-transformers
+fastembed
 langchain-chroma
 langchain-community
 langchain-core

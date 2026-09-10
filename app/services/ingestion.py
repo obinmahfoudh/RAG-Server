@@ -5,26 +5,31 @@ from pathlib import Path
 from typing import List, Dict, Any
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 
 CHROMA_PERSIST_DIR = os.getenv("CHROMA_PERSIST_DIR", "./data/chroma")
 BM25_STORE_PATH = os.getenv("BM25_STORE_PATH", "./data/bm25_corpus.pkl")
-EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME")
 
 # Lazy-loaded embedding model instance
-_embeddings = None
+embeddings = None
 
-def get_embeddings() -> HuggingFaceEmbeddings:
-    global _embeddings
-    if _embeddings is None:
-        _embeddings = HuggingFaceEmbeddings(
-            model_name=EMBEDDING_MODEL_NAME,
-            model_kwargs={"device": "cpu"},
-            encode_kwargs={"normalize_embeddings": True}
-        )
-    return _embeddings
+# This chooses embeddings based on where its running from. Since render free tier is causing OOM issues with sentence-transformers prob because of pytorch, we'll use fastembeddings on render and sentence-transformers locally
+def get_embeddings():
+    from langchain_huggingface import HuggingFaceEmbeddings
+    global embeddings
+    if embeddings is None:
+        if EMBEDDING_MODEL_NAME:
+            embeddings = FastEmbedEmbeddings(model_name = EMBEDDING_MODEL_NAME)
+        else:
+            embeddings = HuggingFaceEmbeddings(
+                model_name = "sentence-transformers/all-MiniLM-L6-v2",
+                model_kwargs= {"device": "cpu"},
+                encode_kwargs= {"normalize_embeddings": True}
+            )
+    return embeddings
 
 # Ingestion Service Class
 class IngestionService:
