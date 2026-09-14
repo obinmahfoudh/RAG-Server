@@ -6,7 +6,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.documents import Document
 
 # For online hosting
-MODEL_NAME = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
+MODEL_NAME = os.getenv("LLM_MODEL", "openai/gpt-oss-120b")
 MODEL_API_KEY = os.getenv("GROQ_API_KEY")
 # For local 
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")

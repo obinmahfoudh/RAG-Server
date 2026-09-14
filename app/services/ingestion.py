@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import List, Dict, Any
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 
@@ -18,12 +17,14 @@ embeddings = None
 
 # This chooses embeddings based on where its running from. Since render free tier is causing OOM issues with sentence-transformers prob because of pytorch, we'll use fastembeddings on render and sentence-transformers locally
 def get_embeddings():
-    from langchain_huggingface import HuggingFaceEmbeddings
     global embeddings
     if embeddings is None:
+        # Check if we're on render by checking environment variable
         if EMBEDDING_MODEL_NAME:
+            from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
             embeddings = FastEmbedEmbeddings(model_name = EMBEDDING_MODEL_NAME)
         else:
+            from langchain_huggingface import HuggingFaceEmbeddings
             embeddings = HuggingFaceEmbeddings(
                 model_name = "sentence-transformers/all-MiniLM-L6-v2",
                 model_kwargs= {"device": "cpu"},
